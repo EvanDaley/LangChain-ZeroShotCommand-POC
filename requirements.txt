@@ -192,3 +192,4 @@ tqdm==4.67.1
 typing_extensions==4.12.2
 urllib3==2.3.0
 yarl==1.18.3
+langchain[openai]==0.3.13
