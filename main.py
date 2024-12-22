@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 from langchain_openai import OpenAI
 from langchain.agents import initialize_agent
 
-from commands import chrome_click_on_link, chrome_get_the_links_on_the_page, chrome_open_url, chrome_read_the_page, computer_applescript_action, say_text, hello_world
+from commands import chrome_click_on_link, chrome_get_the_links_on_the_page, chrome_open_url, chrome_read_the_page, computer_applescript_action, say_text, hello_world, open_main_py, bring_vs_code_to_foreground
 
 # Load environment variables
 load_dotenv()
@@ -17,7 +17,9 @@ def main(command):
         chrome_get_the_links_on_the_page,
         chrome_click_on_link,
         chrome_read_the_page, 
-        hello_world
+        hello_world, 
+        open_main_py,
+        bring_vs_code_to_foreground
 
     ]
 

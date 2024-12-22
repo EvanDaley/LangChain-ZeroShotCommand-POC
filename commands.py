@@ -42,6 +42,51 @@ def computer_applescript_action(apple_script):
     return run_applescript(apple_script)
 
 @tool(parse_docstring=True)
+def open_main_py(input):
+    """
+    Executing this will open the main.py file in the VS Code. 
+    Nothing extra needs to be done. 
+    This requires no validation.
+    """
+    # Escape the file name to handle special characters
+    file_name_safe = input.replace('"', '\\"')  # Escape double quotes
+
+    # Dynamically include the escaped file name
+    script = f'''
+    tell application "Visual Studio Code"
+        activate
+    end tell
+    tell application "System Events"
+        tell process "Code"
+            delay 0.1
+            key code 35 using {{command down}} -- Press Command+P
+            delay 0.1
+            keystroke "{file_name_safe}" -- Type the file name
+            delay 0.1
+            key code 36 -- Press Enter key
+        end tell
+    end tell
+    '''
+    
+    return run_applescript(script)
+
+@tool(parse_docstring=True)
+def bring_vs_code_to_foreground(input):
+    """
+    Bring VS Code to the foreground
+    """
+    script = f'''
+    tell application "Visual Studio Code"
+        activate
+    end tell
+    '''
+    
+    return run_applescript(script)
+
+
+
+
+@tool(parse_docstring=True)
 def chrome_get_the_links_on_the_page(input):
     """
     Use this when you want to get the links on the current page.
@@ -115,9 +160,7 @@ def run_applescript(applescript):
 
     decoded_text = stdout.decode("utf-8")
 
-    print('returning!!')
-    print('returning!!')
-    print('returning!!')
+    print('Step complete!')
 
     return decoded_text
 
