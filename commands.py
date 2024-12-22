@@ -3,7 +3,7 @@ import re
 
 from langchain.agents import tool
 
-@tool
+@tool(parse_docstring=True)
 def computer_applescript_action(apple_script):
     """
     Use this when you want to execute a command on the computer. The command should be in AppleScript.
@@ -37,11 +37,12 @@ def computer_applescript_action(apple_script):
     Write the AppleScript for the Command:
     Command: 
     """
+    print('Computer Action...')
     print("Running\n", apple_script)
 
     return run_applescript(apple_script)
 
-@tool
+@tool(parse_docstring=True)
 def chrome_get_the_links_on_the_page(input):
     """
     Use this when you want to get the links on the current page.
@@ -50,7 +51,7 @@ def chrome_get_the_links_on_the_page(input):
     """
     return run_javascript('Array.from(document.querySelectorAll("a")).map(x => x.innerText + ": " + x.href).join(" - ")')[:4000]
 
-@tool
+@tool(parse_docstring=True)
 def chrome_click_on_link(link):
     """
     Use this when you want to go to a link. 
@@ -95,7 +96,14 @@ def chrome_read_the_page(input):
 #     Result: {stdout}
 #     """
 
-@tool
+@tool(parse_docstring=True)
+def hello_world(text):
+    """
+    Log hello world to the console
+    """
+    print('hello world')
+
+@tool(parse_docstring=True)
 def chrome_open_url(url):
     """
     Use this tool to open a URL in Chrome. It is recommended to use this tool before doing any other actions on Chrome.
@@ -108,7 +116,87 @@ def chrome_open_url(url):
     end tell
     '''
 
-    return run_applescript(script)
+    return run_applescript(script) 
+
+@tool(parse_docstring=True)
+def open_file_by_name(file_search: str):
+    """
+    Opens a file in VS Code using its name or partial name. 
+    
+    Don't worry about looking up the filepath, or setting the extension. 
+    
+    We can trust the user input, and VS Code will do the heavy lifting here. 
+    
+    Just pass the input thru.
+    
+    Args:
+        file_search (str): The name or partial name of the file to search for.
+    
+    Returns:
+        str: Success or error message.
+    """
+    script = f'''
+    on run argv
+        set file_name to item 1 of argv
+
+        tell application "Visual Studio Code"
+            activate
+        end tell
+
+        tell application "System Events"
+            tell process "Code"
+                delay 0.1
+
+                -- Open the "Quick Open" dialog (default shortcut: Command+P)
+                key code 35 using {{command down}} -- Press Command+P
+                delay 0.1
+
+                -- Type the file name or partial name
+                keystroke file_name
+                delay 0.1
+
+                -- Press Enter to select the file
+                key code 36 -- Press Enter key
+            end tell
+        end tell
+    end run
+    '''
+    try:
+        result = run_script(script)
+        return f"Successfully opened the file: {file_search}" if result else f"Failed to open the file: {file_search}"
+    except Exception as e:
+        return f"Error occurred: {str(e)}"
+
+def run_script(script):
+    print('running script')
+    print(script)
+    """
+    Executes an AppleScript with the given arguments and returns the output or error message.
+
+    Args:
+        script (str): The AppleScript code to execute.
+        *args: Arguments to pass to the AppleScript.
+
+    Returns:
+        str: The result of the AppleScript execution.
+    """
+    try:
+        # Prepare the AppleScript as a command for `osascript` with arguments
+        command = ["osascript", "-"]
+        script_with_args = f"{script}" + '\n' + '\n'.join(f"{arg}" for arg in args)
+
+        # Run the script
+        process = Popen(command, stdin=PIPE, stdout=PIPE, stderr=PIPE, text=True)
+        stdout, stderr = process.communicate(input=script_with_args)
+
+        # Check for errors
+        if process.returncode != 0:
+            raise Exception(f"AppleScript error: {stderr.strip()}")
+
+        return stdout.strip()
+    except Exception as e:
+        return f"Error occurred while running the script: {str(e)}"
+
 
 def run_javascript(javascript):
     javascript = javascript.replace('"', '\\"')
@@ -126,18 +214,56 @@ def run_javascript(javascript):
     
     return run_applescript(script)
 
-def run_applescript(applescript):
-    p = subprocess.Popen(['osascript', '-'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+def run_applescript(script):
+    p = subprocess.Popen(
+        ['osascript', '-e', script],
+        text=True, 
+        stdin=subprocess.PIPE, 
+        stdout=subprocess.PIPE, 
+        stderr=subprocess.PIPE
+    )
 
-    stdout, stderr = p.communicate(applescript.encode('utf-8'))
-
+    # stdout, stderr = p.communicate(applescript.encode('utf-8'))
+    print('error')
+    print(p.stderr)
     if p.returncode != 0:
-        raise Exception(stderr)
+        raise Exception(p.stderr)
 
-    decoded_text = stdout.decode("utf-8")
+    decoded_text = p.stdout.strip()
+    # decoded_text = stdout.decode("utf-8")
+
+    print('result')
+    print(decoded_text)
 
     return decoded_text
+    # return 'success'
+
+
+# def run_applescript(script):
+#     p = subprocess.Popen(
+#         ['osascript', '-e', script],
+#         text=True, 
+#         stdin=subprocess.PIPE, 
+#         stdout=subprocess.PIPE, 
+#         stderr=subprocess.PIPE
+#     )
+
+#     # stdout, stderr = p.communicate(applescript.encode('utf-8'))
+
+#     if p.returncode != 0:
+#         raise Exception(p.stderr)
+
+#     decoded_text = p.stdout.strip()
+#     # decoded_text = stdout.decode("utf-8")
+
+#     return decoded_text
+#     # return 'success'
+
 
 
 def say_text(text):
     run_applescript(f'say "{text}"')
+
+
+
+
