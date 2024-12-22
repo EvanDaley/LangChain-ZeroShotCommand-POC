@@ -40,22 +40,21 @@ def computer_applescript_action(apple_script):
     print("Running\n", apple_script)
 
     return run_applescript(apple_script)
-
+  
+# TODO set preferred editor...
 @tool(parse_docstring=True)
-def open_main_py(input):
+def open_vs_code_file_by_name_search(input):
     """
-    Executing this will open the main.py file in the VS Code. 
+    Executing this will do a name search in VS Code on the given input.
     Nothing extra needs to be done. 
     This requires no validation.
+    Don't do anything extra after this step.
     """
     # Escape the file name to handle special characters
     file_name_safe = input.replace('"', '\\"')  # Escape double quotes
 
     # Dynamically include the escaped file name
     script = f'''
-    tell application "Visual Studio Code"
-        activate
-    end tell
     tell application "System Events"
         tell process "Code"
             delay 0.1
@@ -67,8 +66,10 @@ def open_main_py(input):
         end tell
     end tell
     '''
+
+    run_applescript(script)
     
-    return run_applescript(script)
+    return 'Done!'
 
 @tool(parse_docstring=True)
 def bring_vs_code_to_foreground(input):
