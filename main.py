@@ -2,8 +2,10 @@ import sys
 from dotenv import load_dotenv
 from langchain_openai import OpenAI
 from langchain.agents import initialize_agent
+from langchain.prompts import PromptTemplate
 
-from commands import chrome_click_on_link, chrome_get_the_links_on_the_page, chrome_open_url, chrome_read_the_page, computer_applescript_action, say_text, hello_world, open_vs_code_file_by_name_search, bring_vs_code_to_foreground
+from commands import chrome_click_on_link, chrome_get_the_links_on_the_page, chrome_open_url, chrome_read_the_page, say_text, hello_world, open_vs_code_file_by_name_search, bring_vs_code_to_foreground, select_lines_in_vs_code
+
 
 # Load environment variables
 load_dotenv()
@@ -12,17 +14,31 @@ def main(command):
     llm = OpenAI(temperature=0)  # Ensure API key is set in .env or passed directly
 
     tools = [
-        computer_applescript_action,
         chrome_open_url,
         chrome_get_the_links_on_the_page,
         chrome_click_on_link,
         chrome_read_the_page, 
         hello_world, 
         open_vs_code_file_by_name_search,
-        bring_vs_code_to_foreground
+        bring_vs_code_to_foreground,
+        select_lines_in_vs_code
     ]
 
-    agent = initialize_agent(tools, llm, agent="zero-shot-react-description", verbose=True)
+    custom_prompt = PromptTemplate(
+        template="""
+        You are a helpful assistant that can perform actions and answer user commands.
+        When you've completed all necessary actions, summarize your final result with the phrase:
+        'Task completed: {output}'.
+        
+        Always respond concisely and accurately.
+
+        {input}
+        """
+    )
+
+    agent = initialize_agent(tools, llm, agent="zero-shot-react-description", verbose=True, prompt=custom_prompt)
+
+    # agent = initialize_agent(tools, llm, agent="zero-shot-react-description", verbose=True)
 
     result = agent.run(command)
 

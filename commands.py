@@ -1,45 +1,6 @@
 import subprocess
-import re
 
 from langchain.agents import tool
-
-@tool(parse_docstring=True)
-def computer_applescript_action(apple_script):
-    """
-    Use this when you want to execute a command on the computer. The command should be in AppleScript.
-
-    Always start with starting the app and activating it.
-
-    If it's a calculation, use the calculator app.
-
-    Use delay 0.5 between keystrokes.
-
-    When possible click buttons instead of typing.
-
-    Here are some examples of good AppleScript commands:
-
-    Command: Create a new page in Notion
-    AppleScript: tell application "Notion"
-        activate
-        delay 0.5
-        tell application "System Events" to keystroke "n" using {{command down}}
-    end tell
-
-    Command: Search for a table nearby
-    AppleScript: tell application "Google Chrome"
-        activate
-        delay 0.5
-        open location "https://www.google.com/search?q=Table+nearby"
-    end tell
-
-    The AppleScript should be valid including quotations.
-
-    Write the AppleScript for the Command:
-    Command: 
-    """
-    print("Running\n", apple_script)
-
-    return run_applescript(apple_script)
   
 # TODO set preferred editor...
 @tool(parse_docstring=True)
@@ -57,7 +18,7 @@ def open_vs_code_file_by_name_search(input):
     script = f'''
     tell application "System Events"
         tell process "Code"
-            delay 0.1
+            delay 0.5
             key code 35 using {{command down}} -- Press Command+P
             delay 0.1
             keystroke "{file_name_safe}" -- Type the file name
@@ -69,7 +30,58 @@ def open_vs_code_file_by_name_search(input):
 
     run_applescript(script)
     
-    return 'Done!'
+    return 'file name search completed'
+ 
+@tool(parse_docstring=True)
+def select_lines_in_vs_code(input):
+    """
+    Selects lines in Visual Studio Code based on the given input.
+    The input should be a string in the format "start_line:end_line".
+    This requires no additional validation or processing.
+    """
+    # Parse the input into start and end lines
+    try:
+        start_line, end_line = map(int, input.split(":"))
+    except ValueError:
+        return "Invalid input format. Please use 'start_line:end_line'."
+    
+    # Calculate the number of lines to select.
+    lines_to_select = (end_line - start_line)
+
+    # AppleScript to select lines in VS Code
+    script = f'''
+    tell application "Visual Studio Code"
+        activate
+    end tell
+
+    delay 0.5
+
+    tell application "System Events"
+        tell process "Code"
+            -- Open the 'Go to Line' dialog (Control+G in VS Code)
+            keystroke "g" using {{control down}}
+            delay 0.1
+
+            -- Type the starting line number
+            keystroke ({start_line} as string)
+            delay 0.2
+            keystroke return
+            delay 0.2
+
+            -- Expand the selection downwards by the number of lines
+            repeat {lines_to_select} times
+                key code 125 using {{shift down}} -- Down Arrow with Shift
+                delay 0.05
+            end repeat
+        end tell
+    end tell
+    '''
+
+    # Pass the arguments to the script
+    run_applescript(script)
+
+    return 'lines have been selected'
+
 
 @tool(parse_docstring=True)
 def bring_vs_code_to_foreground(input):
@@ -81,10 +93,10 @@ def bring_vs_code_to_foreground(input):
         activate
     end tell
     '''
+
+    run_applescript(script)
     
-    return run_applescript(script)
-
-
+    return 'vs code is now in the foreground'
 
 
 @tool(parse_docstring=True)
