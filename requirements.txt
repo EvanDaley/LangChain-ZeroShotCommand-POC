@@ -202,3 +202,9 @@ typing-inspect==0.9.0
 typing_extensions==4.12.2
 urllib3==2.3.0
 yarl==1.18.3
+setuptools
+pyaudio
+SpeechRecognition
+--extra-index-url https://download.pytorch.org/whl/cu116
+torch
+git+https://github.com/openai/whisper.git

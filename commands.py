@@ -82,6 +82,69 @@ def select_lines_in_vs_code(input):
 
     return 'lines have been selected'
 
+@tool(parse_docstring=True)
+def switch_to_project(input):
+    """
+    Switch to the appropriate project in RubyMine.
+    """
+
+    # AppleScript to select lines in VS Code
+    script = f'''
+    on bringProjectToFront(projectName)
+        tell application "System Events"
+            tell process "RubyMine"
+                set windowList to name of windows
+            end tell
+        end tell
+
+        -- Ensure RubyMine is activated
+        tell application "RubyMine"
+            activate
+        end tell
+
+        -- Wait for RubyMine to become active
+        delay 0.2 -- shortened delay
+
+        -- Get the currently active window's name
+        tell application "System Events"
+            tell process "RubyMine"
+                set currentWindowName to name of front window
+            end tell
+        end tell
+
+        -- Check if we are already on the right window
+        if currentWindowName contains projectName then
+            return -- We're already on the correct window, exit the script
+        end if
+
+        -- Cycle through windows using Cmd+` to find the correct one
+        tell application "System Events"
+            tell process "RubyMine"
+                set windowCount to count of windows
+                repeat with i from 1 to windowCount
+                    -- Simulate Cmd + ` to cycle through windows
+                    keystroke "`" using {{command down}}
+                    delay 0.2 -- shortened delay to speed up cycling
+                    -- Get the name of the current window after cycling
+                    set currentWindowName to name of front window
+                    if currentWindowName contains projectName then
+                        -- Found the window, bring it to the front
+                        return -- Exit immediately after finding the right window
+                    end if
+                end repeat
+            end tell
+        end tell
+    end bringProjectToFront
+
+    -- Example usage: Pass "api" as the parameter
+    bringProjectToFront("{input}")
+    '''
+
+    # Pass the arguments to the script
+    run_applescript(script)
+
+    return 'the project has been brought to the foreground'
+
 
 @tool(parse_docstring=True)
 def bring_vs_code_to_foreground(input):

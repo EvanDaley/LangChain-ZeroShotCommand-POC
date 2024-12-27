@@ -4,13 +4,14 @@ from langchain_openai import OpenAI
 from langchain.agents import initialize_agent
 from langchain.prompts import PromptTemplate
 
-from commands import chrome_click_on_link, chrome_get_the_links_on_the_page, chrome_open_url, chrome_read_the_page, say_text, hello_world, open_vs_code_file_by_name_search, bring_vs_code_to_foreground, select_lines_in_vs_code
-
+from commands import chrome_click_on_link, chrome_get_the_links_on_the_page,chrome_open_url, chrome_read_the_page, say_text, hello_world, open_vs_code_file_by_name_search, bring_vs_code_to_foreground, select_lines_in_vs_code, switch_to_project
 
 # Load environment variables
 load_dotenv()
 
-def main(command):
+def ai(command):
+    print("Running AI with input:")
+    print(command)
     llm = OpenAI(temperature=0)  # Ensure API key is set in .env or passed directly
 
     tools = [
@@ -20,9 +21,10 @@ def main(command):
         chrome_read_the_page, 
         hello_world, 
         open_vs_code_file_by_name_search,
-        bring_vs_code_to_foreground,
-        select_lines_in_vs_code
+        select_lines_in_vs_code,
+        switch_to_project
     ]
+ #         bring_vs_code_to_foreground,
 
     custom_prompt = PromptTemplate(
         template="""
@@ -50,7 +52,7 @@ def main(command):
 if __name__ == "__main__":
     command = sys.argv[1]
     if not command:
-        print("Please provide a command to execute e.g. python main.py 'Open the calculator app'")
+        print("Please provide a command to execute e.g. python ai.py 'Open the calculator app'")
         exit(1)
 
-    main(command)
+    ai(command)
